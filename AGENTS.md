@@ -33,4 +33,4 @@ The node's folder supplies the article's `data-type` value. The `layer` field in
 - Check that each node has a blank line before its body and that any optional layer label follows the format above.
 - Inspect both regular and revisit bodies for malformed markers and links to IDs missing from the manifest. Keep the visible trigger phrase exactly as written by the author.
 - Check referenced variant and audio files for existence and matching case.
-- Serve the root over HTTP and test Markdown formatting, direct hashes, inline links, browser history, revisit swaps, audio, and Drift through exhaustion.
+- Serve the root over HTTP and test Markdown formatting, direct hashes, inline links, browser history, revisit swaps, audio, and Drift before and after all entries have been visited.

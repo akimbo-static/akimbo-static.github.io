@@ -120,10 +120,6 @@ async function loadNode(id, revisit) {
   };
 }
 
-function unvisitedNodes() {
-  return [...manifest.nodes.keys()].filter(id => !visited.has(id));
-}
-
 function clearEntry() {
   entry.hidden = true;
   if (audio.hasAttribute("src")) {
@@ -146,7 +142,7 @@ async function showNode(moveFocus = false) {
   }
   if (!manifest.nodes.has(id)) {
     status.textContent = "Entry not found.";
-    drift.disabled = unvisitedNodes().length === 0;
+    drift.disabled = false;
     return;
   }
 
@@ -170,9 +166,7 @@ async function showNode(moveFocus = false) {
     }
     entry.hidden = false;
     recordVisit(id);
-    const remaining = unvisitedNodes();
-    drift.disabled = remaining.length === 0;
-    status.textContent = remaining.length ? "" : "All entries visited this session.";
+    status.textContent = "";
     if (moveFocus) {
       entry.focus({ preventScroll: true });
       window.scrollTo(0, 0);
@@ -181,7 +175,8 @@ async function showNode(moveFocus = false) {
     if (currentNavigation !== navigation) return;
     console.error(error);
     status.textContent = "Could not load this entry.";
-    drift.disabled = unvisitedNodes().some(candidate => candidate !== id);
+  } finally {
+    if (currentNavigation === navigation) drift.disabled = false;
   }
 }
 
@@ -207,10 +202,14 @@ async function start() {
   });
   drift.addEventListener("click", () => {
     const id = window.location.hash.slice(1);
-    const candidates = unvisitedNodes().filter(candidate => candidate !== id);
-    if (candidates.length) {
-      window.location.hash = candidates[Math.floor(Math.random() * candidates.length)];
+    const others = [...manifest.nodes.keys()].filter(candidate => candidate !== id);
+    const unvisited = others.filter(candidate => !visited.has(candidate));
+    const candidates = unvisited.length ? unvisited : others;
+    if (candidates.length === 0) {
+      showNode(true);
+      return;
     }
+    window.location.hash = candidates[Math.floor(Math.random() * candidates.length)];
   });
   await showNode();
 }
