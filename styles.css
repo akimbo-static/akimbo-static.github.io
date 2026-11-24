@@ -10,6 +10,10 @@ body {
   overflow-wrap: anywhere;
 }
 
+[data-type="voices"] #node-body {
+  font-style: italic;
+}
+
 #node-body pre {
   overflow-x: auto;
 }
