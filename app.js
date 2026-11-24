@@ -96,7 +96,7 @@ async function loadNode(id, revisit) {
   }
 
   const layer = fields.get("layer");
-  if (fields.get("id") !== id || !["memory", "whisper", "static"].includes(layer)) {
+  if (fields.get("id") !== id || (layer !== undefined && !slug.test(layer))) {
     throw new Error(`Invalid ID or layer in ${id}`);
   }
 
@@ -155,7 +155,11 @@ async function showNode(moveFocus = false) {
     const node = await loadNode(id, visited.has(id));
     if (currentNavigation !== navigation) return;
 
-    entry.dataset.layer = node.layer;
+    if (node.layer) {
+      entry.dataset.layer = node.layer;
+    } else {
+      delete entry.dataset.layer;
+    }
     entry.dataset.type = node.type;
     title.textContent = node.title ?? "";
     title.hidden = !node.title;

@@ -20,7 +20,7 @@ Use UTF-8 Markdown files. Write one `key: value` per metadata line, then a blank
 | --- | --- |
 | `id` | Required. Lowercase ASCII letters and digits, optionally separated by single hyphens. Must match the filename stem and a unique ID in `content/index.json`. |
 | `title` | Optional single-line heading. |
-| `layer` | Required. `memory`, `whisper`, or `static`. Exposed as `data-layer` on the article. |
+| `layer` | Optional styling label. Use lowercase ASCII letters and digits, optionally separated by single hyphens. Exposed as `data-layer` on the article when set. |
 | `body` | Everything after the metadata separator. Use `[[target-id\|trigger phrase]]` for inline links. |
 | `corrupt_variant` | Optional lowercase `.md` filename in the same folder as its node, with letters, digits, or hyphens before the extension. This file contains only replacement body text. |
 | `audio_src` | Optional site-relative path such as `assets/audio/test-tone.wav`. Use letters, digits, hyphens, or underscores in the filename stem and an alphanumeric extension. |
@@ -30,7 +30,7 @@ The node's folder supplies the article's `data-type` value. The `layer` field in
 ## Validation
 
 - Check that the manifest lists each ID once, includes its default ID, and maps each ID to an existing `<type>/<id>.md` file. Allowed types are `docs`, `voices`, and `warner`.
-- Check that each node has a valid layer and a blank line before its body.
+- Check that each node has a blank line before its body and that any optional layer label follows the format above.
 - Inspect both regular and revisit bodies for malformed markers and links to IDs missing from the manifest. Keep the visible trigger phrase exactly as written by the author.
 - Check referenced variant and audio files for existence and matching case.
 - Serve the root over HTTP and test Markdown formatting, direct hashes, inline links, browser history, revisit swaps, audio, and Drift through exhaustion.

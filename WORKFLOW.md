@@ -5,7 +5,6 @@
 
    ```text
    id: new-node
-   layer: memory
 
    [PLACEHOLDER PROSE FOR NODE: new-node]
    ```
@@ -20,6 +19,8 @@
 
 ## Styling and moving entries
 
-The article gets `data-type="docs"`, `data-type="voices"`, or `data-type="warner"` from the entry's folder. In `styles.css`, use a selector like `[data-type="docs"] #node-body` to style the Markdown body for one type. You can combine it with the separate layer attribute, as in `[data-type="voices"][data-layer="memory"]`.
+The article gets `data-type="docs"`, `data-type="voices"`, or `data-type="warner"` from the entry's folder. In `styles.css`, use a selector like `[data-type="docs"] #node-body` to style the Markdown body for one type.
+
+To give an entry a styling override, add an optional header such as `layer: custom-style`. This adds `data-layer="custom-style"` alongside the folder type. A selector such as `[data-layer="custom-style"] #node-body` can apply the same override in any folder. Use lowercase letters and digits, with single hyphens between words.
 
 To change an entry's type, move its Markdown file and any revisit file together, then update its path in `content/index.json`. Keep the same ID so its hash URL and incoming inline links continue to work.

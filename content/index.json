@@ -1,9 +1,10 @@
 ﻿{
-  "default": "owl",
+  "default": "mark-of-the-owl",
   "nodes": {
-    "owl": "voices/owl.md",
-    "fountain": "warner/fountain.md",
     "709446": "docs/709446.md",
-    "glass": "warner/glass.md"
+    "mark-of-the-owl": "voices/mark-of-the-owl.md",
+    "mask-of-the-raven": "voices/mask-of-the-raven.md",
+    "entry": "warner/entry.md",
+    "the-girl": "warner/the-girl.md"
   }
 }
