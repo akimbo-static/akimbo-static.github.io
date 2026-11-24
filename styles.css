@@ -1,0 +1,29 @@
+body {
+  max-width: 65ch;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+#node-body {
+  overflow-wrap: anywhere;
+}
+
+#node-body pre {
+  overflow-x: auto;
+}
+
+audio {
+  max-width: 100%;
+  margin-block-start: 1rem;
+}
+
+button {
+  font: inherit;
+  margin-block-start: 1rem;
+}
+
+footer {
+  margin-block-start: 2rem;
+}
