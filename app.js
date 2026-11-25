@@ -1,4 +1,6 @@
 import MarkdownIt from "./vendor/markdown-it/markdown-it.esm.min.mjs";
+import { drawVoicesFog } from "./fog.js";
+import { startWarnerDebris } from "./ruins.js";
 
 const entry = document.querySelector("#node");
 const title = document.querySelector("#node-title");
@@ -13,9 +15,34 @@ const pageTypes = new Set(["docs", "voices", "warner"]);
 const content = new URL("./content/", import.meta.url);
 let manifest;
 let navigation = 0;
+let fogDrawn = false;
+let stopWarnerDebris;
 
 const markdown = new MarkdownIt({ html: false, breaks: true });
 const nodeLink = /\[\[([a-z0-9-]+)\|([^\[\]\r\n]+)\]\]/y;
+const effectMarker = /\{\{(glitch|wisp|focus)\|([^{}\r\n]+)\}\}/y;
+const inlineEffects = {
+  docs: { name: "glitch", className: "archive-glitch" },
+  voices: { name: "wisp", className: "voice-wisp" },
+  warner: { name: "focus", className: "warner-focus" },
+};
+
+markdown.inline.ruler.before("link", "entry_effect", (state, silent) => {
+  const effect = inlineEffects[state.env.type];
+  if (!effect || state.src[state.pos] !== "{") return false;
+
+  effectMarker.lastIndex = state.pos;
+  const match = effectMarker.exec(state.src);
+  if (!match || match[1] !== effect.name || effectMarker.lastIndex > state.posMax) return false;
+
+  if (!silent) {
+    state.push("span_open", "span", 1).attrSet("class", effect.className);
+    state.push("text", "", 0).content = match[2];
+    state.push("span_close", "span", -1);
+  }
+  state.pos += match[0].length;
+  return true;
+});
 
 markdown.inline.ruler.before("link", "warner_link", (state, silent) => {
   if (state.linkLevel > 0 || state.src[state.pos + 1] !== "[") return false;
@@ -59,7 +86,7 @@ function recordVisit(id) {
 }
 
 async function fetchText(url) {
-  const response = await fetch(url);
+  const response = await fetch(url, { cache: "no-cache" });
   if (!response.ok) throw new Error(`Could not load ${url.pathname}`);
   return response.text();
 }
@@ -78,8 +105,7 @@ async function loadManifest() {
     }
     nodes.set(id, { type, url: new URL(path, content) });
   }
-  if (!nodes.has(index.default)) throw new Error("Invalid default entry");
-  return { default: index.default, nodes };
+  return { nodes };
 }
 
 async function loadNode(id, revisit) {
@@ -102,6 +128,10 @@ async function loadNode(id, revisit) {
 
   const variant = fields.get("corrupt_variant");
   const audioSrc = fields.get("audio_src");
+  const driftExclude = fields.get("drift_exclude");
+  if (driftExclude !== undefined && !["true", "false"].includes(driftExclude)) {
+    throw new Error(`Invalid drift_exclude in ${id}`);
+  }
   if (variant && !/^[a-z0-9-]+\.md$/.test(variant)) {
     throw new Error(`Invalid variant filename in ${id}`);
   }
@@ -114,14 +144,14 @@ async function loadNode(id, revisit) {
     type,
     layer,
     audioSrc,
+    driftExcluded: driftExclude === "true",
     body: revisit && variant
       ? await fetchText(new URL(variant, url))
       : file.slice(separator.index + separator[0].length),
   };
 }
 
-function clearEntry() {
-  entry.hidden = true;
+function clearAudio() {
   if (audio.hasAttribute("src")) {
     audio.pause();
     audio.removeAttribute("src");
@@ -130,41 +160,95 @@ function clearEntry() {
   audio.hidden = true;
 }
 
+function stopDebris() {
+  stopWarnerDebris?.();
+  stopWarnerDebris = undefined;
+}
+
+function clearEntry() {
+  stopDebris();
+  clearAudio();
+  entry.hidden = true;
+}
+
+function addFocusLetters(phrase) {
+  const text = phrase.textContent;
+  const letters = typeof Intl.Segmenter === "function"
+    ? Array.from(new Intl.Segmenter().segment(text), part => part.segment)
+    : Array.from(text);
+
+  phrase.replaceChildren(...letters.map(letter => {
+    if (/^\s+$/u.test(letter)) return letter;
+
+    const span = document.createElement("span");
+    span.className = "focus-letter";
+    span.textContent = letter;
+    span.style.setProperty("--focus-x", `${(Math.random() * 1.6 - 0.8).toFixed(2)}px`);
+    span.style.setProperty("--focus-y", `${(-0.45 - Math.random() * 0.95).toFixed(2)}px`);
+    span.style.setProperty("--focus-period", `${(4 + Math.random() * 4).toFixed(2)}s`);
+    span.style.setProperty("--focus-delay", `${(-Math.random() * 4).toFixed(2)}s`);
+    return span;
+  }));
+}
+
 async function showNode(moveFocus = false) {
   const currentNavigation = ++navigation;
   drift.disabled = true;
-  clearEntry();
-
-  let id = window.location.hash.slice(1);
-  if (!id) {
-    id = manifest.default;
-    history.replaceState(null, "", `#${id}`);
-  }
-  if (!manifest.nodes.has(id)) {
-    status.textContent = "Entry not found.";
-    drift.disabled = false;
-    return;
-  }
+  if (!audio.paused) audio.pause();
 
   status.textContent = "Loading entry…";
   try {
+    let id = window.location.hash.slice(1);
+    if (!id) {
+      const isCurrent = () => currentNavigation === navigation && !window.location.hash;
+      id = await pickDriftEntry([[...manifest.nodes.keys()]], isCurrent);
+      if (!isCurrent()) return;
+      if (!id) {
+        clearEntry();
+        status.textContent = "No entries available to open.";
+        return;
+      }
+      history.replaceState(null, "", `#${id}`);
+    }
+    if (!manifest.nodes.has(id)) {
+      clearEntry();
+      status.textContent = "Entry not found.";
+      return;
+    }
+
     const node = await loadNode(id, visited.has(id));
     if (currentNavigation !== navigation) return;
+    const renderedBody = markdown.render(node.body, { nodes: manifest.nodes, type: node.type });
 
+    clearAudio();
+    if (node.type !== "warner") stopDebris();
     if (node.layer) {
       entry.dataset.layer = node.layer;
     } else {
       delete entry.dataset.layer;
     }
     entry.dataset.type = node.type;
+    if (node.type === "voices" && !fogDrawn) {
+      drawVoicesFog(document.querySelector("#voices-fog"));
+      fogDrawn = true;
+    }
     title.textContent = node.title ?? "";
     title.hidden = !node.title;
-    body.innerHTML = markdown.render(node.body, { nodes: manifest.nodes });
+    body.innerHTML = renderedBody;
+    for (const phrase of body.querySelectorAll(".warner-focus")) addFocusLetters(phrase);
+    for (const wisp of body.querySelectorAll(".voice-wisp")) {
+      wisp.style.setProperty("--wisp-duration", `${7 + Math.random() * 3}s`);
+      wisp.style.setProperty("--wisp-delay", `${-Math.random() * 4}s`);
+      wisp.style.setProperty("--wisp-drift", (0.8 + Math.random() * 0.4).toFixed(2));
+    }
     if (node.audioSrc) {
       audio.src = new URL(node.audioSrc, import.meta.url).href;
       audio.hidden = false;
     }
     entry.hidden = false;
+    if (node.type === "warner" && !stopWarnerDebris) {
+      stopWarnerDebris = startWarnerDebris(document.querySelector("#warner-debris"));
+    }
     recordVisit(id);
     status.textContent = "";
     if (moveFocus) {
@@ -173,10 +257,51 @@ async function showNode(moveFocus = false) {
     }
   } catch (error) {
     if (currentNavigation !== navigation) return;
+    clearEntry();
     console.error(error);
     status.textContent = "Could not load this entry.";
   } finally {
     if (currentNavigation === navigation) drift.disabled = false;
+  }
+}
+
+async function pickDriftEntry(pools, isCurrent) {
+  for (const pool of pools) {
+    while (pool.length && isCurrent()) {
+      const position = Math.floor(Math.random() * pool.length);
+      const [candidate] = pool.splice(position, 1);
+      const node = await loadNode(candidate, false).catch(error => {
+        console.error(error);
+        return null;
+      });
+      if (isCurrent() && node && !node.driftExcluded) return candidate;
+    }
+  }
+}
+
+async function driftToEntry() {
+  const hash = window.location.hash;
+  const currentNavigation = navigation;
+  const id = hash.slice(1);
+  const otherIds = [...manifest.nodes.keys()].filter(candidate => candidate !== id);
+  const unvisited = otherIds.filter(candidate => !visited.has(candidate));
+  const revisits = otherIds.filter(candidate => visited.has(candidate));
+  const current = manifest.nodes.has(id) ? [id] : [];
+  const isCurrent = () => currentNavigation === navigation && window.location.hash === hash;
+
+  drift.disabled = true;
+  try {
+    const candidate = await pickDriftEntry([unvisited, revisits, current], isCurrent);
+    if (!isCurrent()) return;
+    if (!candidate) {
+      status.textContent = "No entries available for Drift.";
+    } else if (candidate === id) {
+      await showNode(true);
+    } else {
+      window.location.hash = candidate;
+    }
+  } finally {
+    if (isCurrent()) drift.disabled = false;
   }
 }
 
@@ -200,17 +325,7 @@ async function start() {
       showNode(true);
     }
   });
-  drift.addEventListener("click", () => {
-    const id = window.location.hash.slice(1);
-    const others = [...manifest.nodes.keys()].filter(candidate => candidate !== id);
-    const unvisited = others.filter(candidate => !visited.has(candidate));
-    const candidates = unvisited.length ? unvisited : others;
-    if (candidates.length === 0) {
-      showNode(true);
-      return;
-    }
-    window.location.hash = candidates[Math.floor(Math.random() * candidates.length)];
-  });
+  drift.addEventListener("click", driftToEntry);
   await showNode();
 }
 

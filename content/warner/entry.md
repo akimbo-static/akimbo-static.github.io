@@ -13,4 +13,4 @@ The city greets me. Voices all around. Whispers. They are glad in their souls to
 
 The walls croak and rubble scatters across my bloody face.
 
-It is hot. I feel everything.
+It is hot. I feel {{focus|everything}}.

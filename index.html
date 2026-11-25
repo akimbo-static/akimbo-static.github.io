@@ -2,12 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>WARNER</title>
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
+  <canvas id="voices-fog" width="400" height="260" aria-hidden="true"></canvas>
+  <div id="warner-ruins" aria-hidden="true">
+    <canvas id="warner-debris"></canvas>
+  </div>
   <main>
     <article id="node" aria-label="Entry" tabindex="-1" hidden>
       <h1 id="node-title" hidden></h1>
@@ -17,6 +21,8 @@
     <button id="drift" type="button" disabled>Drift</button>
     <p id="status" role="status"></p>
   </main>
-  <footer>WARNER © 2026 — <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">Licensed under CC BY-NC-SA 4.0</a></footer>
+  <footer id="site-footer">
+    <small>WARNER © 2026 — <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">Licensed under CC BY-NC-SA 4.0</a></small>
+  </footer>
 </body>
 </html>

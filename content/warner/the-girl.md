@@ -11,4 +11,4 @@ It was hopeful, the girl said.
 
 The girl said a whole lot of things. Things about pieces of her anatomy other than her face. Things about her gait back when she had one. The girl said that she walked as though she was treading through breast-high tides of ocean water, and talked as though she had lungs full of that same water. The girl was right.
 
-But the girl would not remember those things, were you to ask her.
+But the girl would not remember those things, {{focus|were you to ask her}}.

@@ -1,5 +1,6 @@
 id: ritual-blade
 title: Ritual Blade
+drift_exclude: true
 
 A sharpened blade rusted with the blood of previous users.
 

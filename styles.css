@@ -1,13 +1,103 @@
+@font-face {font-family: Lora;
+  src: url("./assets/fonts/lora/Lora.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Lora;
+  src: url("./assets/fonts/lora/Lora-Italic.ttf") format("truetype");
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+:root {
+  --drift-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  --drift-clearance: calc(4rem + var(--drift-bottom));
+  scroll-padding-block-end: var(--drift-clearance);
+}
+
 body {
   max-width: 65ch;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding-block: calc(2rem + env(safe-area-inset-top, 0px)) var(--drift-clearance);
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
   font-size: 1rem;
   line-height: 1.6;
 }
 
+main {
+  min-block-size: calc(100svh - 2rem);
+}
+
 #node-body {
+  font-size: 1.2rem;
   overflow-wrap: anywhere;
+}
+
+body:has(#node[data-type="docs"]:not([hidden])) {
+  isolation: isolate;
+  color-scheme: dark;
+  background: radial-gradient(ellipse at 50% 20%, #151e17, #080c09 85%);
+  background-attachment: fixed;
+  color: #d1dbc9;
+  font-family: ui-monospace, Consolas, "Liberation Mono", monospace;
+}
+
+body:has(#node[data-type="docs"]:not([hidden]))::before,
+body:has(#node[data-type="docs"]:not([hidden]))::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+body:has(#node[data-type="docs"]:not([hidden]))::before {
+  background: repeating-linear-gradient(to bottom, transparent 0 3px, #0002 3px 4px);
+}
+
+body:has(#node[data-type="docs"]:not([hidden]))::after {
+  background: linear-gradient(transparent, #a2c0a324 45%, #a2c0a30c 70%, transparent);
+  inset: 29% 0 auto;
+  height: 1.4rem;
+  opacity: 0;
+}
+
+[data-type="docs"] #node-body a {
+  color: #bae2ae;
+  text-underline-offset: 0.16em;
+}
+
+[data-type="docs"] .archive-glitch {
+  --archive-color-offset: -1px 0 #8bb8a164, 1px 0 #b1837564;
+  position: relative;
+  text-shadow: var(--archive-color-offset);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body:has(#node[data-type="docs"]:not([hidden]))::after {
+    animation: archive-signal 7s steps(1, end) infinite;
+  }
+
+  [data-type="docs"] .archive-glitch {
+    animation: archive-word 3.6s steps(1, end) infinite;
+  }
+}
+
+@keyframes archive-signal {
+  0%, 80%, 84%, 100% { opacity: 0; }
+  81% { opacity: 0.65; transform: translateY(0); }
+  82.5% { opacity: 0.35; transform: translateY(22vh); }
+}
+
+@keyframes archive-word {
+  0%, 26%, 73%, 100% { left: 0; text-shadow: var(--archive-color-offset); }
+  16%, 70% { left: 1px; text-shadow: -2px 0 #8bb8a1ad, 2px 0 #b183759e; }
+  21%, 71.5% { left: -1px; text-shadow: 1px 0 #8bb8a187, -2px 0 #b1837578; }
 }
 
 body:has(#node[data-type="voices"]:not([hidden])) {
@@ -17,21 +107,33 @@ body:has(#node[data-type="voices"]:not([hidden])) {
   color: #edf0f3;
 }
 
-body:has(#node[data-type="voices"]:not([hidden]))::before {
-  content: "";
+#voices-fog {
+  display: none;
   position: fixed;
-  inset: -8%;
+  top: -10%;
+  left: -10%;
+  width: 120%;
+  height: 120%;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse 34% 13% at 8% 30%, #adc3ce32, transparent),
-    radial-gradient(ellipse 30% 9% at 12% 41%, #a0b8c622, transparent),
-    radial-gradient(ellipse 36% 17% at 92% 73%, #8d9cbe35, transparent),
-    radial-gradient(ellipse 26% 11% at 86% 84%, #a2adca25, transparent);
+  opacity: 0.75;
+}
+
+body:has(#node[data-type="voices"]:not([hidden])) #voices-fog {
+  display: block;
+}
+
+[data-type="voices"] {
+  font-family: Lora, Georgia, serif;
 }
 
 [data-type="voices"] #node-body {
-  font-style: italic;
+  line-height: 1.68;
+}
+
+[data-type="voices"] .voice-wisp {
+  --wisp-aura: 0 0 0.18em #c5e0f075, 0 0 0.42em #a2c6dc48;
+  text-shadow: var(--wisp-aura);
 }
 
 [data-type="voices"] #node-body a {
@@ -44,8 +146,30 @@ body:has(#node[data-type="voices"]:not([hidden]))::before {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  body:has(#node[data-type="voices"]:not([hidden]))::before {
+  #voices-fog {
     animation: voices-mist 42s ease-in-out infinite alternate;
+  }
+
+  [data-type="voices"] .voice-wisp {
+    animation: wisp-trail var(--wisp-duration, 8s) linear var(--wisp-delay, 0s) infinite;
+  }
+}
+
+@keyframes wisp-trail {
+  0%, 24%, 100% {
+    text-shadow: var(--wisp-aura), 0 0 0.16em #b6d3e300, 0 0 0.22em #bbd8e600;
+  }
+
+  44% {
+    text-shadow: var(--wisp-aura),
+      calc(0.16em * var(--wisp-drift, 1)) -0.12em 0.22em #b6d3e369,
+      calc(0.25em * var(--wisp-drift, 1)) -0.18em 0.32em #bbd8e646;
+  }
+
+  80%, 92% {
+    text-shadow: var(--wisp-aura),
+      calc(0.62em * var(--wisp-drift, 1)) -0.36em 0.52em #b6d3e300,
+      calc(0.94em * var(--wisp-drift, 1)) -0.56em 0.66em #bbd8e600;
   }
 }
 
@@ -61,6 +185,104 @@ body:has(#node[data-type="voices"]:not([hidden]))::before {
   }
 }
 
+body:has(#node[data-type="warner"]:not([hidden])) {
+  isolation: isolate;
+  color-scheme: dark;
+  background: #080a09;
+  color: #e9e5dd;
+  font-family: system-ui, "Segoe UI", sans-serif;
+}
+
+[data-type="warner"] #node-body {
+  line-height: 1.65;
+}
+
+#warner-ruins {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 27% 34% at 0% 14%, #a87d4552, #74654820 45%, transparent 100%),
+    radial-gradient(ellipse 22% 29% at 100% 19%, #97784a44, #625a3720 49%, transparent 100%),
+    radial-gradient(ellipse 56% 30% at 50% 0%, #22282050, transparent);
+}
+
+body:has(#node[data-type="warner"]:not([hidden])) #warner-ruins {
+  display: block;
+}
+
+#warner-ruins::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: clamp(3rem, 13vh, 8rem);
+  background:
+    radial-gradient(ellipse 11% 66% at 4% 8%, #030503c0, transparent),
+    radial-gradient(ellipse 6% 49% at 13% 14%, #080c07a0, transparent),
+    radial-gradient(ellipse 17% 78% at 24% 0%, #29322565, transparent),
+    radial-gradient(ellipse 13% 78% at 79% 5%, #050705bf, transparent),
+    radial-gradient(ellipse 19% 95% at 97% 10%, #222c1d95, transparent),
+    linear-gradient(to bottom, #101510, #101410 48%, #0b0f0bda 76%, transparent);
+}
+
+#warner-debris {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+[data-type="warner"] #node-body a {
+  color: #eac68d;
+  text-underline-offset: 0.18em;
+}
+
+[data-type="warner"] #node-body a:is(:hover, :focus-visible) {
+  color: #fff2d7;
+}
+
+[data-type="warner"] .warner-focus {
+  position: relative;
+  color: #fff0d8;
+  text-shadow: 0 0 0.18em #ebbf8140;
+  letter-spacing: 0.028em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-type="warner"] .warner-focus {
+    animation: warner-focus 5.2s ease-in-out infinite;
+  }
+
+  [data-type="warner"] .focus-letter {
+    position: relative;
+    animation: focus-letter-jump var(--focus-period) ease-in-out var(--focus-delay) infinite;
+  }
+}
+
+@keyframes warner-focus {
+  0%, 32%, 77%, 100% {
+    left: 0;
+    text-shadow: 0 0 0.18em #ebbf8140;
+  }
+
+  50% {
+    left: 0.5px;
+    text-shadow: 0 0 0.42em #ebbf81aa, 0 0 0.72em #ebbf813a;
+  }
+
+  57% {
+    left: -0.35px;
+    text-shadow: 0 0 0.34em #ebbf8180, 0 0 0.56em #ebbf8126;
+  }
+}
+
+@keyframes focus-letter-jump {
+  0%, 66%, 74%, 100% { left: 0; top: 0; }
+  69% { left: var(--focus-x); top: var(--focus-y); }
+}
+
 #node-body pre {
   overflow-x: auto;
 }
@@ -70,11 +292,51 @@ audio {
   margin-block-start: 1rem;
 }
 
-button {
+#drift {
+  position: fixed;
+  left: 50%;
+  bottom: var(--drift-bottom);
+  z-index: 2;
+  transform: translateX(-50%);
+  min-width: 5rem;
+  min-height: 44px;
+  padding: 0.4rem 1.15rem;
+  border: 1px solid #747975;
+  border-radius: 999px;
+  background: #191d1c;
+  color: #f3eee5;
+  box-shadow: 0 3px 16px #0005;
   font: inherit;
-  margin-block-start: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-footer {
-  margin-block-start: 2rem;
+@media (hover: hover) {
+  #drift:hover:enabled {
+    background: #2a302d;
+  }
+}
+
+#drift:active:enabled {
+  background: #333a34;
+}
+
+#drift:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+#drift:disabled {
+  color: #aaa9a4;
+  cursor: default;
+}
+
+#site-footer {
+  padding-block: 1.5rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+#site-footer a {
+  color: inherit;
 }
