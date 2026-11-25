@@ -6,6 +6,7 @@ const entry = document.querySelector("#node");
 const title = document.querySelector("#node-title");
 const body = document.querySelector("#node-body");
 const audio = document.querySelector("#node-audio");
+const back = document.querySelector("#back");
 const drift = document.querySelector("#drift");
 const status = document.querySelector("#status");
 
@@ -21,11 +22,32 @@ let stopWarnerDebris;
 const markdown = new MarkdownIt({ html: false, breaks: true });
 const nodeLink = /\[\[([a-z0-9-]+)\|([^\[\]\r\n]+)\]\]/y;
 const effectMarker = /\{\{(glitch|wisp|focus)\|([^{}\r\n]+)\}\}/y;
+const labelEffects = new RegExp(effectMarker.source, "g");
 const inlineEffects = {
   docs: { name: "glitch", className: "archive-glitch" },
   voices: { name: "wisp", className: "voice-wisp" },
   warner: { name: "focus", className: "warner-focus" },
 };
+
+function pushEffect(state, effect, text) {
+  state.push("span_open", "span", 1).attrSet("class", effect.className);
+  state.push("text", "", 0).content = text;
+  state.push("span_close", "span", -1);
+}
+
+function pushLinkLabel(state, label) {
+  const effect = inlineEffects[state.env.type];
+  let cursor = 0;
+  if (effect) {
+    for (const match of label.matchAll(labelEffects)) {
+      if (match[1] !== effect.name) continue;
+      state.push("text", "", 0).content = label.slice(cursor, match.index);
+      pushEffect(state, effect, match[2]);
+      cursor = match.index + match[0].length;
+    }
+  }
+  state.push("text", "", 0).content = label.slice(cursor);
+}
 
 markdown.inline.ruler.before("link", "entry_effect", (state, silent) => {
   const effect = inlineEffects[state.env.type];
@@ -36,9 +58,7 @@ markdown.inline.ruler.before("link", "entry_effect", (state, silent) => {
   if (!match || match[1] !== effect.name || effectMarker.lastIndex > state.posMax) return false;
 
   if (!silent) {
-    state.push("span_open", "span", 1).attrSet("class", effect.className);
-    state.push("text", "", 0).content = match[2];
-    state.push("span_close", "span", -1);
+    pushEffect(state, effect, match[2]);
   }
   state.pos += match[0].length;
   return true;
@@ -55,7 +75,7 @@ markdown.inline.ruler.before("link", "warner_link", (state, silent) => {
   if (!silent) {
     if (state.env.nodes.has(target)) {
       state.push("link_open", "a", 1).attrSet("href", `#${target}`);
-      state.push("text", "", 0).content = phrase;
+      pushLinkLabel(state, phrase);
       state.push("link_close", "a", -1);
     } else {
       state.push("text", "", 0).content = marker;
@@ -169,6 +189,7 @@ function clearEntry() {
   stopDebris();
   clearAudio();
   entry.hidden = true;
+  title.hidden = true;
 }
 
 function addFocusLetters(phrase) {
@@ -208,7 +229,7 @@ async function showNode(moveFocus = false) {
         status.textContent = "No entries available to open.";
         return;
       }
-      history.replaceState(null, "", `#${id}`);
+      history.replaceState(history.state, "", `#${id}`);
     }
     if (!manifest.nodes.has(id)) {
       clearEntry();
@@ -305,7 +326,16 @@ async function driftToEntry() {
   }
 }
 
+function updateBackButton(hasPrevious) {
+  if (typeof history.state?.warnerHasPrevious !== "boolean") {
+    history.replaceState({ ...history.state, warnerHasPrevious: hasPrevious }, "");
+  }
+  back.disabled = !history.state.warnerHasPrevious;
+}
+
 async function start() {
+  updateBackButton(false);
+  back.addEventListener("click", () => history.back());
   try {
     status.textContent = "Loading entry…";
     manifest = await loadManifest();
@@ -315,7 +345,10 @@ async function start() {
     return;
   }
 
-  window.addEventListener("hashchange", () => showNode(true));
+  window.addEventListener("hashchange", () => {
+    updateBackButton(true);
+    showNode(true);
+  });
   body.addEventListener("click", event => {
     const link = event.target.closest("a");
     if (link?.getAttribute("href") === window.location.hash &&

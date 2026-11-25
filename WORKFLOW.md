@@ -19,11 +19,13 @@
 
 ## Styling and moving entries
 
-On a `docs` entry, wrap any word or phrase you want to briefly glitch as `{{glitch|your words}}`. The words display as plain text. Put the marker on one line and outside WARNER links and code. With reduced motion enabled, the text stays still and the scanlines remain visible.
+On a `docs` entry, wrap any word or phrase you want to briefly glitch as `{{glitch|your words}}`. The words display as plain text. Put the marker on one line and outside code. With reduced motion enabled, the text stays still and the scanlines remain visible.
 
-On a `voices` entry, use `{{wisp|your words}}` for a faint aura and an occasional drifting smoke trail. The words themselves stay in place. Reduced motion keeps the aura still. Use the same one-line syntax outside WARNER links and code.
+On a `voices` entry, use `{{wisp|your words}}` for a faint aura and an occasional drifting smoke trail. The words themselves stay in place. Reduced motion keeps the aura still.
 
-On a `warner` entry, use `{{focus|your words}}` for a warm pulse and a slight sideways shift. Reduced motion keeps the emphasis still. Use the same one-line syntax outside WARNER links and code.
+On a `warner` entry, use `{{focus|your words}}` for a warm pulse and a slight sideways shift. Reduced motion keeps the emphasis still.
+
+To combine an effect and a link, put the effect inside the link label, as in `[[target-id|{{focus|your words}}]]`. You can also mark only part of the label with `[[target-id|some {{focus|words}}]]`. Choose the effect for the entry where the link appears.
 
 The article gets `data-type="docs"`, `data-type="voices"`, or `data-type="warner"` from the entry's folder. In `styles.css`, use a selector like `[data-type="docs"] #node-body` to style the Markdown body for one type.
 

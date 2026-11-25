@@ -33,6 +33,42 @@ main {
   min-block-size: calc(100svh - 2rem);
 }
 
+#entry-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-block-end: 0.75rem;
+}
+
+#node-title {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+#back {
+  flex: none;
+  min-height: 44px;
+  padding-inline: 0.7rem;
+  border: 1px solid currentColor;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+#back:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+#back:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 #node-body {
   font-size: 1.2rem;
   overflow-wrap: anywhere;
@@ -123,7 +159,8 @@ body:has(#node[data-type="voices"]:not([hidden])) #voices-fog {
   display: block;
 }
 
-[data-type="voices"] {
+[data-type="voices"],
+main:has(#node[data-type="voices"]:not([hidden])) #node-title {
   font-family: Lora, Georgia, serif;
 }
 

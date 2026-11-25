@@ -14,7 +14,7 @@
 
 ## Node schema
 
-Use UTF-8 Markdown files. Write one `key: value` per metadata line, then a blank line, then the body. The body is the `body` field. The browser renders Markdown with single line breaks preserved and raw HTML displayed as text. Metadata values and the visible words inside a WARNER link are plain text.
+Use UTF-8 Markdown files. Write one `key: value` per metadata line, then a blank line, then the body. The body is the `body` field. The browser renders Markdown with single line breaks preserved and raw HTML displayed as text. Metadata values and WARNER link labels use plain text. Link labels can also contain the source entry's inline effect marker.
 
 | Field | Rule |
 | --- | --- |
