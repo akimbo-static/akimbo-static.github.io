@@ -10,8 +10,55 @@ body {
   overflow-wrap: anywhere;
 }
 
+body:has(#node[data-type="voices"]:not([hidden])) {
+  isolation: isolate;
+  color-scheme: dark;
+  background-color: #141820;
+  color: #edf0f3;
+}
+
+body:has(#node[data-type="voices"]:not([hidden]))::before {
+  content: "";
+  position: fixed;
+  inset: -8%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 34% 13% at 8% 30%, #adc3ce32, transparent),
+    radial-gradient(ellipse 30% 9% at 12% 41%, #a0b8c622, transparent),
+    radial-gradient(ellipse 36% 17% at 92% 73%, #8d9cbe35, transparent),
+    radial-gradient(ellipse 26% 11% at 86% 84%, #a2adca25, transparent);
+}
+
 [data-type="voices"] #node-body {
   font-style: italic;
+}
+
+[data-type="voices"] #node-body a {
+  color: #c1d9ee;
+  text-underline-offset: 0.18em;
+}
+
+[data-type="voices"] #node-body a:is(:hover, :focus-visible) {
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body:has(#node[data-type="voices"]:not([hidden]))::before {
+    animation: voices-mist 42s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes voices-mist {
+  from {
+    opacity: 0.55;
+    transform: translate(-2%, 1%) rotate(-3deg);
+  }
+
+  to {
+    opacity: 0.9;
+    transform: translate(3%, -2%) rotate(2deg);
+  }
 }
 
 #node-body pre {
